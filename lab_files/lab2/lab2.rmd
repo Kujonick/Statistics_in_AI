@@ -65,8 +65,24 @@ A pythonowego odpowiednio:
 
 ```{python import}
 from naive_bayes import NaiveBayes
+
+bayes = NaiveBayes()
+bayes.fit(train_df)
+
+bayes.accuracy(test_df)
+
 ```
 
+Wersja ze zliczaniem ile razy słowo było użyte w każdym mailu, co o dziwo wcale nie podniosło accuracy
+
+```{python}
+from naive_bayes import MultinomialBayes
+multi_bayes = MultinomialBayes()
+multi_bayes.fit(train_df)
+
+multi_bayes.accuracy(test_df)
+
+```
 Po ukończeniu pierwszego zadania należy podjąć się usprawnienia
 klasyfikatora. W tym celu można na przykład:\
 a) usprawnić tokenizację danych tekstowych, może niektóre z nich można
@@ -75,7 +91,6 @@ b) zastosować wygładzenie Laplace'a, by odpowiednio potraktować sytuacje,\
 gdy w zbiorze treningowym pojawia się niewidziane wcześniej słowo
 c) rozszerzyć klasyfikator tak, by brał pod uwagę ilość wystąpień
 wyrazów (Multinomial Naїve Bayes)\
-
 
 Jako, że obecny klasyfikator już radzi sobie bardzo dobrze, można
 utrudnić zadanie poprzez podzielenie zbioru treningowego i testowego w

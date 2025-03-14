@@ -12,7 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 1.  Czas oczekiwania na pewne zdarzenie ma rozkład Gamma(3, r). Wykonano serię pomiarów i uzyskano czasy 1.4, 1.8, 1.4, 1.4 i 1.5. Oblicz estymatę największej wiarygodności parametru r.
 
-```         
+```{r}
+times = c(1.4, 1.8, 1.4, 1.4, 1.5)
+
+log_likelihood <- function(lambda) {
+  -sum(dgamma(times, 3, rate=lambda, log = TRUE))
+}
+
+result <- optim(par = 0.1, log_likelihood, method = "Brent", lower = 0.001, upper = 10)
+result$par
 ```
 
 2.  Plik goals.csv zawiera dane o liczbie goli strzelonych przez pewną drużynę piłkarską w kolejnych meczach. Zakładamy, że liczba goli ma rozkład Poissona o nieznanej wartości λ. Wyznacz estymator największej wiarygodności parametru λ.
@@ -21,13 +29,39 @@ knitr::opts_chunk$set(echo = TRUE)
 goals = read.table("goals.csv")
 summary(goals)
 ```
+```{r}
+goals_vector = goals[['V1']]
+
+log_likelihood_goals <- function(lambda) {
+  -sum(dpois(goals_vector, lambda=lambda, log = TRUE))
+}
+
+result <- optim(par = 0.1, log_likelihood_goals, method = "Brent", lower = 0.001, upper = 10)
+result$par
+```
+
 
 ```{python dat}
 import pandas as pd
 
 goals_df = pd.read_csv("goals.csv")
 print(goals_df.describe())
+goals_vector_py = goals_df.to_numpy()
 ```
+```{python}
+import statistics
+import numpy as np
+from scipy.stats import poisson
+from scipy.optimize import minimize_scalar
+
+def log_likelihood_goals(lambda_p):
+    return -np.sum(poisson.logpmf(goals_vector_py, mu=lambda_p))
+  
+result = minimize_scalar(log_likelihood_goals, bounds=(0.001, 10), method="bounded")
+print(result.x)
+```
+## DLACZEGO TUTAJ ZNALAZŁO INNY? 
+
 
 3.  Wyznacz przedziały ufności na poziomie 0.95 i 0.99 dla średniej wysokości drzew ze zbioru trees.
 
@@ -36,7 +70,21 @@ Mamy więc do niego bezpośredni dostęp w R:
 
 ```{r trees}
 data(trees)
-summary(trees)
+#summary(trees)
+trees_heights = trees[['Height']]
+trees_mean = mean(trees_heights)
+trees_sd = sd(trees_heights)
+count_confidance <- function(alpha, Mean, SD){
+    diff = qnorm(alpha/2, lower.tail=FALSE) * SD
+    c(Mean - diff, Mean + diff)
+}
+count_confidance_trees <- function(confidance){
+  count_confidance(1 - confidance, trees_mean, trees_sd)
+}
+count_confidance_trees(0.95)
+```
+```{r}
+count_confidance_trees(0.99)
 ```
 
 Możemy przekazać zbiór do środowiska pythonowego, jak zademonstrowano w lab0.
@@ -54,15 +102,40 @@ print(trees.describe())
 
 4.  Ustal minimalną liczebność próby dla oszacowania średniej wzrostu noworodków o rozkładzie N(μ,1.5cm). Zakładamy maksymalny błąd szacunku d=0.5cm oraz poziom ufności 0.99.
 
-```         
+```{r}
+u = qnorm(0.01/2, lower.tail=FALSE)
+d = 0.5
+sigma = 1.5
+n = ceiling((u * sigma / d) ^ 2)
+n
 ```
+
 
 5.  Automat produkuje blaszki o nominalnej grubości 0.04 mm. Wyniki pomiarów grubości losowej próby 25 blaszek zebrane są w pliku blaszki.csv. Czy można twierdzić, że blaszki są cieńsze niż 0.04 mm? Przyjmujemy rozkład normalny grubości blaszek oraz poziom istotności α=0.01.
 
-```         
+```{r}
+blaszki = read.table("blaszki.csv")[['V1']]
+count_confidance(0.01, mean(blaszki), sd(blaszki))
+# nie możemy stwierdzić czy są cieńsze, ponieważ na 99% średnia wypada pomiędzy 0.022 a 0.0514 więc mieści się tam 0.04
 ```
 
 6.  Spośród 97 chorych na pewną chorobę, losowo wybranym 51 pacjentom podano lek. Pozostałym 46 podano placebo. Po tygodniu 12 pacjentów, którym podano lek, oraz 5 spośród tych, którym podano placebo, poczuło się lepiej. Zweryfikuj hipotezę o braku wpływu podanego leku na samopoczucie pacjentów.
 
-```         
+## Postanowiłem wyliczyć jaki jest ogólny stan poprawy i czy z lekarstwem jest większy czy nie od tego średniego. Jeśli tak, to znaczy że lek działa
+L - pacjent dostał lek
+N - placebo
+Po - poprawa
+P(Po|L) = 12/51
+P(Po|N) = 5/46
+P(L) = 51/97
+P(N) = 46/97
+
+```{r}  
+Po_L = 12/51
+Po_N = 5/46
+L = 51/97
+N = 46/97
+Po = Po_L * L + Po_N * N
+Po
+Po_L
 ```
