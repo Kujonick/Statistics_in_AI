@@ -52,7 +52,7 @@ train_df.describe()
 W ramach laboratorium należy wypełnić brakujący kod w pliku naive_bayes
 z rozszerzeniem .r albo .py i następnie wytrenować klasyfikator na
 zbiorze treningowym maili oraz przewidzieć odpowiedzi na zbiorze
-testowym. Oczekiwana precyzja powinna wynieść około 0.98
+testowym. Oczekiwana dokładność powinna wynieść około 0.98
 
 Kod skyptu Rowego możemy zaimportować w sposób następujący:
 

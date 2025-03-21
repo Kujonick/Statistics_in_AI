@@ -9,7 +9,7 @@
 
 #### 1.2 Uruchomienie projektu:
 
-Aby zsynchronizować zainstalowane pakiety i uruchomić pliki .rmd, nalezy wykonać poniższe kroki:
+Aby zsynchronizować zainstalowane pakiety i uruchomić pliki .rmd, należy wykonać poniższe kroki:
 
  1. Sklonowanie repozytorium do wybranego folderu.
  2. Otworzenie projektu w RStudio (File -> Open Project -> Wybranie pliku SwSI.Rproj). Spowoduje to automatyczne pobranie pakietu kontroli wersji renv.
