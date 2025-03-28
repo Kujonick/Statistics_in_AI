@@ -70,3 +70,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+*.exe
+*.bat
+*ps1
+*.cfg
+stat*

@@ -44,8 +44,66 @@ air_quality_df.info()
 Zadanie dotyczy zbioru UCI Air Quality
 <https://archive.ics.uci.edu/dataset/360/air+quality>
 
+```{python air data}
+air_quality_df.nunique()
+```
+
+
 1.  Dopasuj model regresji liniowej przewidujący wartość CO
     wykorzystując 5 wybranych zmiennych i zinterpretuj otrzymane wyniki.
+```{python air data}
+import statsmodels.api as sm
+import numpy as np
+import statsmodels.formula.api as smf
+
+```
+
+
+```{python air data}
+import statsmodels.formula.api as smf
+model_co = smf.ols('CO ~ Temperature + RelativeHumidity + NO2 + C(Date) + C(Time)', data=air_quality_df).fit()
+model_co.summary()
+```
+
+```{md}
+Wygląda że najważniejszymi parametrami jest Godzina i Data zrobionych badań.
+
+Godzina sugorwać może że w godzinach 3:00 - 4:00 jest największe zapotrzebowanie na piece (najzimniej jest wtedy), a więc ciepłownie uruchamiają się nocą.
+
+Data może sugerować lekki overfitting, oraz fakt iż duży wpływ będzie miała pogoda danego dnia a nie zawsze pora roku (możemy to stwierdzić po własnym doświadczeniu z ubiegłych kilku miesięcy i 12 stopni w Styczniu)
+
+Wydaje się również iż ilość dwutlenku Azotu wskazuje na większą ilość CO.
+Temperatura łączy się pewnie nieco z porą dnia, jednak wydaje się mieć mniejszy impakt
+Wilgotnośc wydaje się nie wpływać
+```
 
 2.  Porównaj modele regresji wielomianowej stężenia CO względem ozonu
     PT08_S5_O3 dla różnych stopni wykorzystanego wielomianu.
+```{python air data}
+import statsmodels.formula.api as smf
+model_o3_1 = smf.ols('CO ~ PT08_S5_O3', data=air_quality_df).fit()
+model_o3_1.summary()
+```
+
+```{python air data}
+import statsmodels.formula.api as smf
+model_o3_2 = smf.ols('CO ~ PT08_S5_O3 + I(PT08_S5_O3**2) ', data=air_quality_df).fit()
+model_o3_2.summary()
+```
+
+```{python air data}
+import statsmodels.formula.api as smf
+model_o3_3 = smf.ols('CO ~ PT08_S5_O3 + I(PT08_S5_O3**2) + I(PT08_S5_O3**3)', data=air_quality_df).fit()
+model_o3_3.summary()
+```
+
+```{python air data}
+import statsmodels.formula.api as smf
+model_o3_3 = smf.ols('CO ~ PT08_S5_O3 + I(PT08_S5_O3**2) + I(PT08_S5_O3**3) + I(PT08_S5_O3**4)', data=air_quality_df).fit()
+model_o3_3.summary()
+```
+
+```{md}
+Jak widać związek CO z Ozonem nie jest liniowy, albo nie jest tylko liniowy.
+Największy impakt na CO wydaje się mieć kwadrat stężenie ozonu, gdzie 3 potęga i 1 mają wymierny wpływ, a już po 4 nie widać zmian.
+```
