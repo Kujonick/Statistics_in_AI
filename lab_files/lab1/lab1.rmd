@@ -4,10 +4,6 @@ author: "Hubert Guzowski"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ### Zadania powtórkowe
 
 1.  Czas oczekiwania na pewne zdarzenie ma rozkład Gamma(3, r). Wykonano serię pomiarów i uzyskano czasy 1.4, 1.8, 1.4, 1.4 i 1.5. Oblicz estymatę największej wiarygodności parametru r.

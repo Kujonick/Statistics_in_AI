@@ -7,10 +7,6 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ### Naiwny klasyfikator bayesowski
 
 Klasyczny klasyfikator oparty o poznane już własności prawdopodobieństwa
