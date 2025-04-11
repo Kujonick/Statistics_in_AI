@@ -166,6 +166,7 @@ kicks_long.head()
 
 ```{python poisson kicks}
 from scipy.stats import poisson
+import numpy as np
 
 observed_counts = kicks_long.groupby('deaths').size()
 total_corps_years = sum(observed_counts)
@@ -190,7 +191,6 @@ results
 ```
 
 ```{python fit kicks}
-import numpy as np
 import statsmodels.api as sm
 
 poisson_model = sm.GLM(
@@ -226,7 +226,7 @@ Y <- cut(latent_score,
 
 Tym razem do dopasowania wykorzystamy funkcję polr z pakietu MASS.
 
-```{r fit and vis ordered multinomial}
+```{r fit and visualise ordered multinomial}
 library(MASS)
 
 model <- polr(Y ~ X, method = "logistic")
@@ -234,20 +234,15 @@ model <- polr(Y ~ X, method = "logistic")
 new_data <- data.frame(X = seq(min(X), max(X), length.out = 300))
 probs <- predict(model, new_data, type = "probs")
 
-# Combine data for plotting
 plot_data <- cbind(new_data, probs)
 observed_data <- data.frame(X, Y)
 
-# Plot
 ggplot() +
-  # Predicted probability curves
   geom_line(data = plot_data, aes(X, Low, color = "Low"), linewidth = 1) +
   geom_line(data = plot_data, aes(X, Medium, color = "Medium"), linewidth = 1) +
   geom_line(data = plot_data, aes(X, High, color = "High"), linewidth = 1) +
-  # Scattered observed data (jittered for visibility)
   geom_jitter(data = observed_data, aes(X, as.numeric(Y) / 3 - 0.1, fill = Y), 
               width = 0.05, height = 0.05, shape = 21, size = 2, alpha = 0.6) +
-  # Adjust y-axis to show probabilities only
   scale_y_continuous(name = "Probability", limits = c(0, 1)) +
   scale_color_manual("Predicted Probability", 
                      values = c("Low" = "#E41A1C", "Medium" = "#377EB8", "High" = "#4DAF4A")) +
@@ -263,7 +258,7 @@ ggplot() +
 
 Powracamy do zbioru danych Titanic.
 
-LDA (Liniowa Analiza Dysklryminacyjna) Metoda statystyczna do
+LDA (Liniowa Analiza Dyskryminacyjna) Metoda statystyczna do
 klasyfikacji i redukcji wymiarowości, zakładająca wspólną macierz
 kowariancji dla wszystkich klas reprezentawanych przez rokłady normalne.
 Optymalizuje liniowe granice decyzyjne
@@ -274,7 +269,7 @@ titanic_lda_pred <- predict(titanic_lda, newdata = test_data)
 table(Predicted = titanic_lda_pred$class, Actual = test_data$Survived)
 ```
 
-QDA (Kwadratowa Analiza Dysklryminacyjna) Rozszerzenie LDA, które
+QDA (Kwadratowa Analiza Dyskryminacyjna) Rozszerzenie LDA, które
 dopuszcza różne macierze kowariancji dla każdej klasy, prowadząc do
 nieliniowych (kwadratowych) granic decyzyjnych.
 

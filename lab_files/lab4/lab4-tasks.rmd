@@ -1,5 +1,5 @@
 ---
-title: "Zadanie 2"
+title: "lab4-task"
 author: "Hubert Guzowski"
 output: html_document
 ---
