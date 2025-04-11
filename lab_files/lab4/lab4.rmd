@@ -20,10 +20,10 @@ funkcji mapującej.
 
 ### Regresja logistyczna
 
-Zgodnie z nazwą regrezja logistyczna opiera się o funkcję mapującą
+Zgodnie z nazwą regresja logistyczna opiera się o funkcję mapującą
 logit:\
 $$
-Y \sim \text{ln}\left(\frac{e^{\beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p}}{1 + e^{\beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p}}\right)
+Y \sim \frac{1}{1 + e^{-\left(\beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p\right)}}
 $$
 
 ```{r sample poisson}

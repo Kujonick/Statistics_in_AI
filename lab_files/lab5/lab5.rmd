@@ -456,6 +456,10 @@ np.random.seed(42)
 
 X = hitters_df.drop('Salary', axis=1)
 y = hitters_df['Salary']
+
+# Handle categorical variables if needed
+X = pd.get_dummies(X, drop_first=True)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 scaler = StandardScaler()
@@ -500,6 +504,8 @@ lr_mse = mean_squared_error(y_test, lr_y_pred)
 I wizualizacja wag predyktorów
 
 ```{python}
+feature_names = ['AtBat', 'Hits', 'HmRun', 'Runs', 'RBI']
+
 ridge_coef_data = []
 for i, alpha in enumerate(alphas):
     for j, feature in enumerate(feature_names):
