@@ -20,17 +20,60 @@ head(winequality_white)
 
 1.  Do obu tabel winequality_white i winequality_red należy dodać kolumnę type zawierającą zmienną kategoryczną o wartości odpowiednio 'white' i 'red'. Następnie połącz tabele w jedną o nazwie winequality.
 
-```         
+```{r}
+winequality_white$type <- c('white')
+winequality_red$type <- c('red')
+
+winequality <- rbind(winequality_white, winequality_red)
+winequality
 ```
 
 2.  Dopasuj i przeanalizuj regresję logistyczną przewidującą gatunek wina.
 
-```         
+```{r}
+set.seed(123)
+
+train_indices_wines <- sample(1:nrow(winequality), size = 0.7 * nrow(winequality))
+
+train_data_wines <- winequality[train_indices_wines,]
+test_data_wines  <- winequality[-train_indices_wines,]
+
+train_data_wines$y <- train_data_wines$type == rep("red", nrow(train_data_wines))
+test_data_wines$y <- test_data_wines$type == rep("red", nrow(test_data_wines))
+
 ```
 
+
+```{r}
+
+logistic_model <- glm(y ~ ., family = binomial, data = train_data_wines[,!names(train_data_wines) %in% c('type') ])
+summary(logistic_model)
+```
+Możemy łatwo zauważyć, że ilość kwasu cytrynowego, siarczanów a nawet jakość nie świadczy o jego typie ( oczywiście  cukier rezydualny jest bardzo ważny, z racji że wino czerwone dłużej jest trzymane w etapie dojrzewania i zostaje mniej cukru, także gęstość jest bardzo ważnym czynnikiem )
+```{r}
+wines_pred <- predict(logistic_model, newdata = test_data_wines[,!names(test_data_wines) %in% c('type', 'y') ], type = "response")
+predicted_type <- ifelse(wines_pred > 0.5, 1, 0)
+confusion_matrix <- table(Predicted = predicted_type, Actual = test_data_wines$y)
+print(confusion_matrix)
+```
 3.a) Dopasuj i przeanalizuj regresję porządkową przewidującą jakość wina.
 
-```         
+
+```{r}
+library(MASS)
+
+
+order_model <- polr(as.factor(quality) ~ chlorides + fixed.acidity + volatile.acidity + residual.sugar + chlorides + total.sulfur.dioxide + density + type, data = train_data_wines, method="logistic")
+
+
+```
+
+```{r}
+wines_pred <- predict(order_model, newdata = test_data_wines)
+confusion_matrix <- table(Predicted = wines_pred, Actual = test_data_wines$quality)
+print(confusion_matrix)
+
+sum(wines_pred == test_data_wines$quality) / length(wines_pred)
 ```
 
 3.b) Porównaj wyniki z wybranym innym modelem spośród knn, lda, qda (w pythonie dostępne w bibliotece sciki-learn).

@@ -81,6 +81,8 @@ test_data  <- titanic_data[-train_indices, -3]
 
 cat("Training set:", nrow(train_data), "rows\n",
     "Test set:", nrow(test_data), "rows")
+
+titanic_data
 ```
 
 Dopasowujemy model do wszystkich zmiennych:
@@ -222,6 +224,8 @@ Y <- cut(latent_score,
          breaks = c(-Inf, -1, 1, Inf), 
          labels = c("Low", "Medium", "High"),
          ordered_result = TRUE)
+
+X
 ```
 
 Tym razem do dopasowania wykorzystamy funkcję polr z pakietu MASS.
