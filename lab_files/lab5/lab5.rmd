@@ -126,6 +126,13 @@ for nvar, model in best_models.items():
 poprawionego $R^2$. Zwróć uwagę na to, że poprawione $R^2$ powinno być
 *zmaksymalizowane*.]
 
+```{python}
+def find_best_models(X):
+  results = []
+  for k in range(1, min(nvmax, len(X)) + 1):
+
+```
+
 ### Selekcja krokowa do przodu i wstecz
 
 Funkcja `regsubsets()` z odpowiednio ustawionym parametrem `method` może
