@@ -96,7 +96,7 @@ import itertools
 
 hitters_df = r.Hitters
 X = hitters_df.columns.drop('Salary')
-nvmax = 3
+nvmax = 5
 
 results = []
 for k in range(1, min(nvmax, len(X)) + 1):
@@ -108,6 +108,7 @@ for k in range(1, min(nvmax, len(X)) + 1):
             'vars': combo,
             'model': model,
         })
+    print(k)
 
 # Najlepsze modele dla każdej kombinacji selekcjonujemy również ręcznie
 best_models = {}
@@ -127,10 +128,21 @@ poprawionego $R^2$. Zwróć uwagę na to, że poprawione $R^2$ powinno być
 *zmaksymalizowane*.]
 
 ```{python}
-def find_best_models(X):
-  results = []
-  for k in range(1, min(nvmax, len(X)) + 1):
 
+best_models_r_adj = {}
+best_models_bic = {}
+for n in range(1, min(nvmax, len(X)) + 1):
+    subset = [r for r in results if r['n_vars'] == n]
+    best_models_r_adj[n] = max(subset, key=lambda x: x['model'].rsquared_adj)
+    best_models_bic[n] = min(subset, key=lambda x: x['model'].bic)
+  
+for nvar, model in best_models_r_adj.items():
+  print(f"{nvar}: variables: {model['vars']}, bic: {model['model'].bic}, aic: {model['model'].aic}")
+
+print()
+
+for nvar, model in best_models_bic.items():
+  print(f"{nvar}: variables: {model['vars']}, bic: {model['model'].bic}, aic: {model['model'].aic}")
 ```
 
 ### Selekcja krokowa do przodu i wstecz
@@ -198,6 +210,52 @@ X_sel
 i wstecz według kryteriów BIC,** $C_p$ i poprawionego $R^2$? Czy któreś
 z nich są faktycznie najlepsze?]
 
+```{python}
+model = LinearRegression()
+
+from sklearn.metrics import r2_score
+
+def r2_score_adjusted(y_pred, y_true, *args, **kwargs):
+  r2 = r2_score(y_pred, y_true, *args, **kwargs)
+  return 1-(1 - r2)*((len(X)-1)/(len(X)-len(X[0])-1))
+
+sfs = SequentialFeatureSelector(
+    model, 
+    n_features_to_select=5,
+    direction='forward',  
+    scoring='r2',
+    cv=5  
+)
+
+sfs.fit(X, y)
+
+# Otrzymujemy maskę wybranych cech
+sfs.get_support()
+```
+
+```{python}
+model = LinearRegression()
+
+from sklearn.metrics import r2_score
+
+def r2_score_adjusted(y_pred, y_true, *args, **kwargs):
+  r2 = r2_score(y_pred, y_true, *args, **kwargs)
+  return 1-(1 - r2)*((len(X)-1)/(len(X)-len(X[0])-1))
+
+sfs = SequentialFeatureSelector(
+    model, 
+    n_features_to_select=5,
+    direction='backward',  
+    scoring='r2',
+    cv=5  
+)
+
+sfs.fit(X, y)
+
+# Otrzymujemy maskę wybranych cech
+sfs.get_support()
+```
+
 ### Wybór modelu przy pomocy metody zbioru walidacyjnego
 
 Estymaty błędów testowych będą dokładne tylko jeśli wszystkie aspekty
@@ -233,12 +291,21 @@ prediction_error <- function(i, model, subset) {
 }
 val_errors <- sapply(1:19, prediction_error, model = Hitters_bs_v, subset = test)
 val_errors
+which.min(val_errors)
 ```
 
 [**Ile zmiennych zawiera model optymalny?**]
+# Tak na oko wychodzi że 6
 
 Po ustaleniu optymalnej liczby zmiennych szukamy optymalnego modelu z tą
 liczbą zmiennych **przy pomocy wszystkich obserwacji**.
+```{r}
+
+Hitters_best <- regsubsets(Salary ~ ., data = Hitters, nvmax = 7)
+pred <- predict(Hitters_best, Hitters, id = 7)
+mean((Hitters$Salary - pred)^2)
+```
+
 
 ### Wybór modelu przy pomocy $k$-krotnej walidacji krzyżowej
 
@@ -261,13 +328,22 @@ Estymata błędu CV jest teraz średnią błędów w każdej grupie.
 ```{r kcvErrors}
 cv_errors <- colMeans(val_err)
 cv_errors
+which.min(cv_errors)
 ```
 
 [**Ile zmiennych ma model optymalny według tego kryterium?**]
+# Tym razem policzone - 11 (aczkolwiek jak się ruszy jeszcze raz losowanie to może się zdarzyć sytuacja że się to zmieni, widziałem już 8 i 10)
 
 Podobnie jak poprzednio, po wyznaczeniu optymalnej liczby zmiennych
 szukamy optymalnego modelu z tą liczbą zmiennych przy pomocy całego
 zbioru obserwacji.
+
+```{r}
+
+Hitters_best <- regsubsets(Salary ~ ., data = Hitters, nvmax = 8)
+pred <- predict(Hitters_best, Hitters, id = 8)
+mean((Hitters$Salary - pred)^2)
+```
 
 ## Regularyzacja
 
@@ -285,6 +361,7 @@ zbiór danych `Hitters` z pakietu `ISLR`. **1. Przed wykonaniem ćwiczeń
 należy z niego usunąć wiersze zawierające `NA`**.
 
 ```{r remove Na}
+Hitters <- na.omit(Hitters)
 ```
 
 Funkcja `glmnet::glmnet()` ma inny interfejs od `lm()` i jej podobnych.
@@ -375,6 +452,7 @@ mean((pred_ridge_big - y[test])^2)
 ```
 
 [**Jakie wnioski możemy wyciągnąć z tego porównania?**]
+# optymalna wartość lambdy leży gdzieś "po środku", przesadzenie w jedną bądź w drugą stronę skutkować może wynikiem porónywalnym do prawie nienauczonego modelu.
 
 Testowy MSE dla $\lambda = 0$ (metoda najmniejszych kwadratów)
 
@@ -436,6 +514,8 @@ mean((pred_lasso - y[test])^2)
 
 [**Jak wygląda porównanie z modelem zerowym, metodą najmniejszych
 kwadratów i regresją grzbietową?**]
+
+# Łatwo zauważyć że regresja grzbietowa, choć ma lekko gorsze wyniki na treningowym, w ogólnej sytuacji mniej się overfituje więc znajduje bardziej ogólne rozwiązanie
 
 Estymaty współczynników dla optymalnego $\lambda$
 
@@ -583,3 +663,20 @@ lasso.
 [**Dopasuj do siatki parametrów model regularyzacji Elastic-Net o
 wybranej wartości wagi `alpha` i przeprowadź podobna analizę, co dla
 regularyzacji Lasso.**]
+
+```{r}
+cv_out <- cv.glmnet(X[train,], y[train], alpha = 0.5)
+plot(cv_out)
+
+```
+```{r}
+cv_out$lambda.min
+pred_lasso <- predict(fit_lasso, s = cv_out$lambda.min, newx = X[test,])
+mean((pred_lasso - y[test])^2)
+
+```
+
+```{r}
+full_elastic <- glmnet(X, y, alpha = 0.5)
+predict(full_elastic, s = cv_out$lambda.min, type = "coefficients")
+```

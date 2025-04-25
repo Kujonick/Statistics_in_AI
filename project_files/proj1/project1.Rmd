@@ -1,0 +1,140 @@
+---
+title: "project1"
+author: "Rola Przemysław"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+install.packages("Metrics")
+install.packages("nnet")
+```
+
+Datasety, które użyłem:
+Klasyfikacja obiektów na niebie
+https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17
+
+Predykcja wieku gwiazdy:
+https://www.kaggle.com/datasets/fernandolima23/physical-parameters-of-cool-solartype-stars
+
+```{r stars}
+stars <- read.csv("Physical_parameters_of_stars_regression.csv")
+stellar_objects <- read.csv("star_classification.csv")
+```
+
+
+# Regresja
+## Predykcja wieku gwiazdy po jej parametrach
+
+W ręce trafił mi zbiór, niestety bardzo mały, ale posiadający cechy zarejestrowanych obrazów gwiazd i ich estymowany wiek
+```{r}
+summary(stars)
+```
+
+Zbiór jest praktycznie gotowy du użytku. Omijamy jedynie nazwę gwiazdy, trzeba też usunąć wiersze, które posiadają wartości `NA`
+```{r}
+
+stars <- stars[!is.na(stars$Age), ]
+stars <- stars[!is.na(stars$Mass), ]
+train_indices <- sample(1:nrow(stars), size = 0.7 * nrow(stars))
+
+# pozbywamy się jedynie nazwy gwiazdy, są one nie istotne, pożcimy także ostatnią (błąd estymacji wieku), z racji iż mógłby zbytnio podpowiadać wiek gwiazdy (albo po prostu przeszkadzać)
+train_stars <- stars[train_indices, -c(1, 13)]
+test_stars <- stars[-train_indices, -c(1, 13)]
+
+```
+
+
+```{r full model trening}
+model_stars <- lm(Age ~ ., data = train_stars)
+summary(model_stars)
+```
+Jak widać większość parametrów zdaje się byc ważna dla modelu, z wyjątkiem błędów pomiaru (temperatury efektywnej, blędu metaliczności oraz błedu Mikroturbulencji)
+
+Oczywiście wszystkie mają wpływ liniowy
+
+- dodatni wpływ posiadają Temperatura efektywna, Mikroturbulencje.
+- negatywny wpływ ma masa oraz grawitacja powierzchniowa
+```{r full model predictions}
+predictions <- predict(model_stars, newdata = test_stars)
+actuals <- test_stars$Age
+
+library(Metrics)
+
+rmse(actuals, predictions)
+mae(actuals, predictions)
+```
+
+```{r plot}
+plot(actuals, predictions,
+     xlab = "Rzeczywiste wartości",
+     ylab = "Przewidziane wartości",
+     main = "Regresja liniowa: test modelu")
+abline(a = 0, b = 1, col = "red", lty = 2, lwd = 2)
+```
+
+
+Jeden pomysł który przyszedł mi do głowy to podniesienie do kwadratu błędów które nie dawały efektów w pierwszym treningu
+```{r expanded model training}
+model_stars_extended <- lm(Age ~ . + I(e_.Fe.H.^2) + I(e_Vt^2), data = train_stars)
+summary(model_stars_extended)
+
+predictions_enxtended <- predict(model_stars_extended, newdata = test_stars)
+rmse(actuals, predictions_enxtended)
+mae(actuals, predictions_enxtended)
+```
+Co jak widać nie polepsza, a wręcz pogarsza model
+
+## Wnioski
+Model był się w stanie dobrze nauczyć przewidywać wiek, ale jednak jest to trochę oszukany test - z racji iż sami wieku nie znamy, a jedynie jego przybliżenie.
+
+# Klasyfikacja
+
+
+
+```{r }
+summary(stellar_objects)
+```
+## Filtracja danych
+Teraz usuwamy więcej niż z poprzedniego,gdyż:
+
+- `alpha` i `delta` są współrzędnymi obiektu. Na dłuższą metę mógłby się przeuczyć, biorąc tylko to
+- `obj_Id` oraz `spec_obj_ID` - id nie są cechami do nauki
+- `field_ID` - pośrednia wartość miejsca, gdzie znajduje się ten obiekt
+
+W ten sposób dostałem w miarę ogólne dane, to jest nei zwarzające z którego miejsca został uchwycony dany obraz, ale ma wszelkie informacje o parametrach uchwyconego zdjęcia
+
+```{r split classification dataset}
+train_indices_stellar <- sample(1:nrow(stellar_objects), size = 0.7 * nrow(stellar_objects))
+stellar_objects$class <- as.factor(stellar_objects$class)
+
+train_stellar <- stellar_objects[train_indices_stellar, -c(1, 2, 3, 12, 13)]
+test_stellar <- stellar_objects[-train_indices_stellar, -c(1, 2, 3, 12, 13)]
+```
+
+Z racji posiadania 3 klas klasyfiacji, użyję `multinom()`
+
+
+```{r}
+library(nnet)
+model_multi <- multinom(class ~ ., data = train_stellar)
+summary(model_multi)
+```
+Zauważyć można największy wpływ na klasę miały promieniowania `u`, `g`, `r`, `i` oraz `z` (kolejno ultrafioletowe, zielone, czerwone, podczerwone i podczerwone filtrowane)
+Po jedynie kwazarze i gwieździe można zauważyć, że mają różne wspólczynniki dla danych promieniowań, co skutecznie je od siebie odróżnia.
+
+W pierwszej próbie tego modelu nie usunąłem tylu kolumn i model uczył się w większośći po współrzędnych. Teraz widzimy, że najważniejszymi parametrami są pochodne światła które do nas dotarło.
+
+
+```{r}
+
+predictions_stellar <- predict(model_multi, newdata = test_stellar)
+actuals_stellar <- test_stellar$class
+
+confusion_matrix <- table(Predicted = predictions_stellar, Actual = actuals_stellar)
+print(confusion_matrix)
+```
+## Wnioski
+Pomimo wyciągnięcia tylu danych ze zbioru, model dalej był w stanie się w miarę dobrze nauczyć rozróżniać poszczególne klasy. Najwięcej problemu sprawia mu rozróznienie kwazara od galaktyki.
