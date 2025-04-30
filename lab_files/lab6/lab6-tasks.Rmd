@@ -5,6 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+install.packages("purrr")
 ```
 
 ### Zadanie 1
@@ -15,6 +16,36 @@ Licząc błąd średniokwadratowy na tym zbiorze ustal optymalny stopień wielom
 (między 1 a 10) w regresji wielomianowej `medv` względem `lstat` (modele mają
 być uczone na danych nienależących do zbioru walidacyjnego). Optymalnym modelem
 jest ten, który uzyskuje najmniejszą estymatę błędu testowego.
+```{r}
+set.seed(409685)
+library(MASS)
+library(Metrics)
+
+train_indices <- sample(1:nrow(Boston), size = 0.7 * nrow(Boston))
+train_Boston <- Boston[train_indices,]
+test_Boston <- Boston[-train_indices,]
+
+```
+
+
+```{r}
+
+test_poly_degree <- function(degree) {
+  fit_poly <- lm(medv ~ poly(lstat, degree), data = train_Boston)
+  predictions <- predict(fit_poly, newdata = test_Boston)
+  actuals <- test_Boston$medv
+  mse(predictions, actuals)
+}
+library(purrr)
+results <- (map(1:10, test_poly_degree))
+t(results)
+which.min(t(results))
+```
+Wniosek jest taki, iż 9 najlepiej sobie poradził, choć gdyby ode mnie zależało - spokojnie 6 stopień był o dobrej wartości i msziejszym stopniu
+```{r}
+fit_poly <- lm(medv ~ poly(lstat, 9), data = train_Boston)
+summary(fit_poly)
+```
 
 ### Zadanie 2
 
@@ -46,19 +77,22 @@ lm(Whole_weight ~ Shucked_weight + Viscera_weight + Shell_weight, data = abalone
 ```
 
 Należy ją zatem usunąć z dalszej analizy.
+```{r dataset correction}
+abalone_df <- abalone[, -c(5)]
 
+```
 Po pierwsze dopasuj model regresji Poissonowskiej (liczba pierścieni jest 
 oczywiście całkowita).
 
 ```{r}
-abalone_fit_0 <- glm(1 ~ 1)
+abalone_fit_0 <- glm(Rings ~ ., data=abalone_df, family = poisson)
 summary(abalone_fit_0)
 ```
 
 Następnie usuń nieistotne predyktory (być może trzeba to będzie zrobić krokowo).
 
 ```{r}
-abalone_fit <- glm(1 ~ 1)
+abalone_fit <- glm(Rings ~ . - Viscera_weight - Length, data=abalone_df, family = poisson)
 summary(abalone_fit)
 ```
 
@@ -70,7 +104,14 @@ wygładzające (wygładzające funkcje sklejane albo regresję lokalną).
 ```{r}
 library(gam)
 
-abalone_n_fit <- gam(1 ~ 1)
+abalone_n_fit <- gam(
+  Rings ~ Sex + 
+          s(Diameter) + 
+          s(Height) + 
+          s(Shucked_weight) + 
+          s(Shell_weight),
+  data = abalone_df,
+  family = poisson)
 summary(abalone_n_fit)
 ```
 
@@ -79,20 +120,26 @@ test wykazał istotność części nieparametrycznej.
 
 Porównaj oba finalne modele przy pomocy testów ANOVA. Który model jest lepszy?
 
-```{}
+```{r}
+anova(abalone_fit, abalone_n_fit)
 ```
 
 Wykonaj PDP dla obu modeli.
 
 PDP dla modelu bez składników nieparametrycznych.
 
-```{}
+```{r}
+plot(abalone_fit, col = "red")
 ```
 
 PDP dla modelu ze składnikami nieparametrycznymi.
 
-```{}
+```{r}
+plot(abalone_n_fit, col = "red", se = TRUE)
+
 ```
+
+#### użyłem kodu z laba, ale mam wrażenie że powinny dać obydwa ten sam wykres. Niestety ani jeden ani drugi nie porównuje Rings do cech, tak więc nie wiem którego naprawiać
 
 ### Zagadnienia dla zainteresowanych
 

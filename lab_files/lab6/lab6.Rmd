@@ -33,6 +33,8 @@ Używamy zbioru danych `Wage` z pakietu `ISLR`.
 Regresja wielomianowa stopnia 4 `wage` względem `age`.
 
 ```{r poly4}
+
+
 fit_poly <- lm(wage ~ poly(age, 4), data = Wage)
 summary(fit_poly)
 ```
@@ -87,7 +89,7 @@ poly = PolynomialFeatures(degree=4)
 X_poly = poly.fit_transform(X)
 
 model = sm.OLS(y, X_poly).fit()
-print(model.summary())
+model.summary()
 ```
 
 Powyższe modele niekoniecznie potwierdzają sens zastosowania wielomianu stopnia aż 4. W
