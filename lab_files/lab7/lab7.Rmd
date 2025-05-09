@@ -34,6 +34,10 @@ Uzupełniamy zbiór danych
 High <- factor(ifelse(Carseats$Sales <= 8, "No", "Yes"))
 CarseatsH <- data.frame(Carseats, High)
 ```
+
+```{r}
+summary(CarseatsH)
+```
 To samo inaczej
 ```{r within}
 CarseatsH <- within(Carseats, High <- factor(ifelse(Sales <= 8, "No", "Yes")))
@@ -72,8 +76,9 @@ sales_high_tree
 ```
 
 [**1. Które predyktory są najbardziej istotne?**]
-
-Metodą zbioru walidacyjnego estymujemy błąd testowy dla drzewa klasyfikacyjnego
+Odowiedź na to pytanie nie jest jedna, ponieważ z jednej strony najważniejsze byłyby te cechy, które są najwyżej - one dzielą najlepiej bazowe dane. Są też inne cechy, które dzielą później dużo lepiej (to znaczy bardziej rozłącznie) mniejsze zbiory i ona się powtarza
+Metodą zbioru walidacyjnego estymujemy błąd testowy dla drzewa klasyfikacyjnego.
+Jednak biorąc pod uwagę obie te kategorie - Price oraz Income byłyby najważniejszymi cechami 
 w rozważanym problemie.
 ```{r classtreeerror}
 set.seed(1)
@@ -164,6 +169,22 @@ mean(pruned_class != CarseatsH$High[test])
 ```
 
 **2. Narysuj wykres błędu testowego w zależności od rozmiaru poddrzewa.**
+```{r}
+count_error_for_tree_size <- function(size) {
+  sales_high_pruned <- prune.misclass(sales_high_tree, best = size)
+  pruned_class <- predict(sales_high_pruned, newdata = CarseatsH[test,], 
+                        type = "class")
+  return(mean(pruned_class != CarseatsH$High[test]))
+}
+library(purrr)
+errors <- map(c(2:20), count_error_for_tree_size)
+plot(unlist(errors), 
+     type = "b",
+     xlab = "Rozmiar",
+     ylab = "% Błędnych",
+     main = "Wykres błędu w zależności od rozmiaru 2-20")
+```
+
 
 Tutaj przycinanie drzewa w pythonie zgodnie z dokumentacją scikit-learn.
 Wykorzystana tam metoda jest trochę inna.
@@ -205,6 +226,9 @@ print(classification_report(y_test, y_pred_pruned))
 
 Używamy zbioru danych `Boston` z pakietu `MASS`. Konstruujemy drzewo decyzyjne
 dla problemu regresji `medv` względem pozostałych zmiennych.
+```{r regressiontree}
+summary(Boston)
+```
 
 ```{r regressiontree}
 medv_tree <- tree(medv ~ ., data = Boston)
@@ -219,6 +243,8 @@ text(medv_tree)
 ```
 
 **3. Które predyktory są najistotniejsze?**
+Najważniejszą cechą wydaje się ilość pokoi (one powodują największe zmiany - 2., 7. oraz 19. node)
+Wysoko też plasowałoby się status mieszkańców, który działa odwrotnie proporcjonalnie (im więcej biednych ludzi tym ceny spadają ( a przestępstwa rosną, ale o tym w USA nie wolno mówić) w 5. oraz 13. node'dzie)
 
 Metodą zbioru walidacyjnego szacujemy błąd testowy.
 
@@ -240,7 +266,13 @@ plot(medv_cv$size, medv_cv$dev, type = "b")
 ```
 
 **3. Które poddrzewo jest optymalne? Jaki jest jego (estymowany) błąd testowy?**
+Najlepszym w tym przypadku wydaje się położone najdalej, tj drzewo z 7 liścmi. Bład wyliczony to 35.28
+```{r}
+medv_pruned <- prune.tree(medv_tree, best = 7)
 
+medv_pred <- predict(medv_pruned, newdata = Boston[test,])
+mean((medv_pred - Boston$medv[test])^2)
+```
 Przycinanie drzewa $T_0$ do żądanego poziomu realizuje w tym przypadku funkcja
 `prune.tree()`.
 
@@ -251,6 +283,10 @@ text(medv_pruned)
 ```
 
 **4. Oblicz estymatę błędu testowego dla poddrzewa z 4 liśćmi.**
+```{r}
+medv_pred <- predict(medv_pruned, newdata = Boston[test,])
+mean((medv_pred - Boston$medv[test])^2)
+```
 
 pythonowy odpowiednik drzew regresji.
 ```{python regressiontree}
