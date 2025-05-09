@@ -1,6 +1,9 @@
+---
 title: "Drzewa decyzyjne i modele pochodne"
-date: "Semestr letni 2023/24"
-output: html_document
+output: html_document 
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -27,54 +30,59 @@ implementacja dostępna jest w pakiecie `rpart`).
 
 ### Drzewa klasyfikacyjne
 
-Poniższy kod wykorzystuje zbiór danych `Carseats` z pakietu `ISLR`. Będziemy
-klasyfikować obserwacje do dwóch klas: *wysoka sprzedaż* i *niska sprzedaż*.
-Uzupełniamy zbiór danych
+Poniższy kod wykorzystuje zbiór danych `Carseats` z pakietu `ISLR`.
+Będziemy klasyfikować obserwacje do dwóch klas: *wysoka sprzedaż* i
+*niska sprzedaż*. Uzupełniamy zbiór danych
+
 ```{r CarseatsDS}
 High <- factor(ifelse(Carseats$Sales <= 8, "No", "Yes"))
 CarseatsH <- data.frame(Carseats, High)
 ```
+
 To samo inaczej
+
 ```{r within}
 CarseatsH <- within(Carseats, High <- factor(ifelse(Sales <= 8, "No", "Yes")))
 ```
+
 i jeszcze inaczej
+
 ```{r transform}
 CarseatsH <- transform(Carseats, High = factor(ifelse(Sales <= 8, "No", "Yes")))
 ```
 
-Budujemy drzewo klasyfikacyjne do predykcji `High` na podstawie pozostałych
-zmiennych (poza `Sales`).
+Budujemy drzewo klasyfikacyjne do predykcji `High` na podstawie
+pozostałych zmiennych (poza `Sales`).
 
 ```{r classTree}
 sales_high_tree <- tree(High ~ . - Sales, data = CarseatsH)
 summary(sales_high_tree)
 ```
 
-Dla drzew klasyfikacyjnych
-$$
+Dla drzew klasyfikacyjnych $$
   \text{deviance} = -2 n \sum_{m=1}^{|T|} \sum_{k=1}^K \hat{p}_{mk} \log \hat{p}_{mk}
-$$
-oraz
-$$
+$$ oraz $$
   \text{residual mean deviance} = \frac{\text{deviance}}{n - |T|}.
 $$
 
 Przedstawienie graficzne dopasowanego modelu
+
 ```{r plottree}
 plot(sales_high_tree)
 text(sales_high_tree, pretty = 0)
 ```
 
 Więcej informacji podaje funkcja `print.tree()`
+
 ```{r print_tree}
 sales_high_tree
 ```
 
 [**1. Które predyktory są najbardziej istotne?**]
 
-Metodą zbioru walidacyjnego estymujemy błąd testowy dla drzewa klasyfikacyjnego
-w rozważanym problemie.
+Metodą zbioru walidacyjnego estymujemy błąd testowy dla drzewa
+klasyfikacyjnego w rozważanym problemie.
+
 ```{r classtreeerror}
 set.seed(1)
 n <- nrow(CarseatsH)
@@ -87,12 +95,14 @@ mean(tree_class != CarseatsH$High[test])
 ```
 
 *Duże* drzewo $T_0$ dla zbioru uczącego `CarseatsH[train,]`
+
 ```{r bigclasstree}
 plot(sales_high_tree)
 text(sales_high_tree, pretty = 0)
 ```
 
 Załadujemy teraz ten sam zbiór danych za pomocą statsmodels
+
 ```{python carseats}
 carseats = sm.datasets.get_rdataset("Carseats", "ISLR").data
 
@@ -102,8 +112,10 @@ carseats_h['High'] = ['No' if sales <= 8 else 'Yes' for sales in carseats_h['Sal
 
 ```
 
-Drzewa decyzyjne i lasy losowe są w pythonie dostępne w bilbiotece scikit-learn.
-Najpierw przeprowadzimy podział na zbiór treningowy i walidacyjny
+Drzewa decyzyjne i lasy losowe są w pythonie dostępne w bilbiotece
+scikit-learn. Najpierw przeprowadzimy podział na zbiór treningowy i
+walidacyjny
+
 ```{python classTree}
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.model_selection import train_test_split
@@ -121,6 +133,7 @@ y_pred = tree_model.predict(X_test)
 ```
 
 Metryki do oceny modelu znajdują się w module sklearn.metrics:
+
 ```{python modelSummary}
 from sklearn.metrics import classification_report, accuracy_score
 
@@ -135,8 +148,8 @@ print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 ```
 
-Do znalezienia optymalnego poddrzewa stosujemy przycinanie.
-Przy pomocy CV konstruujemy ciąg poddrzew wyznaczony przez malejącą złożoność.
+Do znalezienia optymalnego poddrzewa stosujemy przycinanie. Przy pomocy
+CV konstruujemy ciąg poddrzew wyznaczony przez malejącą złożoność.
 
 ```{r classtreecv}
 set.seed(1)
@@ -145,8 +158,8 @@ sales_high_cv
 plot(sales_high_cv$size, sales_high_cv$dev, type = "b")
 ```
 
-Składowa `sales_high_cv$dev` zawiera liczbę błędów CV. Przycinamy drzewo $T_0$
-do poddrzewa z najmniejszym poziomem błędów CV.
+Składowa `sales_high_cv$dev` zawiera liczbę błędów CV. Przycinamy drzewo
+$T_0$ do poddrzewa z najmniejszym poziomem błędów CV.
 
 ```{r class.tree.prune}
 size_opt <- sales_high_cv$size[which.min(sales_high_cv$dev)]
@@ -156,6 +169,7 @@ text(sales_high_pruned, pretty = 0)
 ```
 
 Testowy poziom błędów dla optymalnego poddrzewa.
+
 ```{r class.pruned.error}
 pruned_class <- predict(sales_high_pruned, newdata = CarseatsH[test,], 
                         type = "class")
@@ -163,13 +177,16 @@ table(pruned_class, CarseatsH$High[test])
 mean(pruned_class != CarseatsH$High[test])
 ```
 
-**2. Narysuj wykres błędu testowego w zależności od rozmiaru poddrzewa.**
+**2. Narysuj wykres błędu testowego w zależności od rozmiaru
+poddrzewa.**
 
 Tutaj przycinanie drzewa w pythonie zgodnie z dokumentacją scikit-learn.
-Wykorzystana tam metoda jest trochę inna.
-Najmniej efektywne liście są wycinane i tworzony jest raport, jak zmienia się
-ogólna entropia liści wraz ze wzrostem alfa (parametr siły przycinania penalizujący ilość liści).
-Ostatnia wartość alfa w ścieżce zostawia drzewo tylko z korzeniem.
+Wykorzystana tam metoda jest trochę inna. Najmniej efektywne liście są
+wycinane i tworzony jest raport, jak zmienia się ogólna entropia liści
+wraz ze wzrostem alfa (parametr siły przycinania penalizujący ilość
+liści). Ostatnia wartość alfa w ścieżce zostawia drzewo tylko z
+korzeniem.
+
 ```{python class.tree.prune}
 clf = DecisionTreeClassifier(random_state=41)
 path = clf.cost_complexity_pruning_path(X_train, y_train)
@@ -183,7 +200,9 @@ ax.set_title("Total Impurity vs effective alpha for training set")
 plt.show()
 ```
 
-Po wybraniu odpowiedniej wartości alfa, możemy otrzymać drzewo o zadanych właściwościach:
+Po wybraniu odpowiedniej wartości alfa, możemy otrzymać drzewo o
+zadanych właściwościach:
+
 ```{python selectAlpha}
 pruned_tree = DecisionTreeClassifier(random_state=0, ccp_alpha=0.009)
 pruned_tree.fit(X_train, y_train)
@@ -203,8 +222,8 @@ print(classification_report(y_test, y_pred_pruned))
 
 ### Drzewa regresyjne
 
-Używamy zbioru danych `Boston` z pakietu `MASS`. Konstruujemy drzewo decyzyjne
-dla problemu regresji `medv` względem pozostałych zmiennych.
+Używamy zbioru danych `Boston` z pakietu `MASS`. Konstruujemy drzewo
+decyzyjne dla problemu regresji `medv` względem pozostałych zmiennych.
 
 ```{r regressiontree}
 medv_tree <- tree(medv ~ ., data = Boston)
@@ -212,6 +231,7 @@ summary(medv_tree)
 ```
 
 *Deviance* oznacza tutaj RSS. Przedstawienie drzewa
+
 ```{r medvtreeshow}
 medv_tree
 plot(medv_tree)
@@ -232,17 +252,19 @@ medv_pred <- predict(medv_tree, newdata = Boston[test,])
 mean((medv_pred - Boston$medv[test])^2)
 ```
 
-Wyznaczamy optymalne poddrzewo metodą przycinania sterowanego złożonością.
+Wyznaczamy optymalne poddrzewo metodą przycinania sterowanego
+złożonością.
 
 ```{r medv.tree.cv}
 medv_cv <- cv.tree(medv_tree)
 plot(medv_cv$size, medv_cv$dev, type = "b")
 ```
 
-**3. Które poddrzewo jest optymalne? Jaki jest jego (estymowany) błąd testowy?**
+**3. Które poddrzewo jest optymalne? Jaki jest jego (estymowany) błąd
+testowy?**
 
-Przycinanie drzewa $T_0$ do żądanego poziomu realizuje w tym przypadku funkcja
-`prune.tree()`.
+Przycinanie drzewa $T_0$ do żądanego poziomu realizuje w tym przypadku
+funkcja `prune.tree()`.
 
 ```{r medv.prune}
 medv_pruned <- prune.tree(medv_tree, best = 4)
@@ -253,6 +275,7 @@ text(medv_pruned)
 **4. Oblicz estymatę błędu testowego dla poddrzewa z 4 liśćmi.**
 
 pythonowy odpowiednik drzew regresji.
+
 ```{python regressiontree}
 from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.metrics import mean_squared_error, r2_score
@@ -285,7 +308,8 @@ Oczywiście bagging jest szczególnym przypadkiem lasu losowego.
 
 ### Bagging
 
-Bagging dla regresji `medv` względem wszystkich pozostałych w zbiorze `Boston`.
+Bagging dla regresji `medv` względem wszystkich pozostałych w zbiorze
+`Boston`.
 
 ```{r medvbag}
 medv_bag <- randomForest(medv ~ ., data = Boston, mtry = 13, importance = TRUE)
@@ -293,24 +317,31 @@ medv_bag
 ```
 
 Wykres błędu OOB względem liczby drzew
+
 ```{r medvbagoob}
 plot(medv_bag, type = "l")
 ```
-W przypadku regresji błąd MSE OOB dostępny jest w składowej `mse` obiektu
-klasy `randomForest`.
-W przypadku klasyfikacji wyniki analizy danych OOB dostępne są w składowych 
-`err.rate` (proporcja błędów) i `confusion` (tabela pomyłek).
+
+W przypadku regresji błąd MSE OOB dostępny jest w składowej `mse`
+obiektu klasy `randomForest`. W przypadku klasyfikacji wyniki analizy
+danych OOB dostępne są w składowych `err.rate` (proporcja błędów) i
+`confusion` (tabela pomyłek).
 
 Wyznaczenie ważności predyktorów
+
 ```{r medvimportance}
 importance(medv_bag)
 ```
+
 I stosowny obrazek
+
 ```{r medvimpplot}
 varImpPlot(medv_bag)
 ```
 
-Oszacowanie błędu testowego dla poprzednio wyznaczonego zbioru walidacyjnego.
+Oszacowanie błędu testowego dla poprzednio wyznaczonego zbioru
+walidacyjnego.
+
 ```{r medvbagvalid}
 set.seed(2)
 medv_bag <- randomForest(medv ~ ., data = Boston, subset = train, mtry = 13,
@@ -319,9 +350,11 @@ medv_pred_bag <- predict(medv_bag, newdata = Boston[test,])
 mean((medv_pred_bag - Boston$medv[test])^2)
 ```
 
-**5. Czy dla zmniejszonego zbioru uczącego zmieniła się ważność predyktorów?**
+**5. Czy dla zmniejszonego zbioru uczącego zmieniła się ważność
+predyktorów?**
 
 Powyższe dla mniejszej liczby hodowanych drzew
+
 ```{r medvbagvalidsmall}
 set.seed(2)
 medv_bag_s <- randomForest(medv ~ ., data = Boston, subset = train, mtry = 13,
@@ -332,10 +365,12 @@ mean((medv_pred_bag_s - Boston$medv[test])^2)
 
 ### Lasy losowe
 
-Domyślna wartość parametru `mtry` to $\sqrt{p}$ dla regresji i $p/3$ dla 
+Domyślna wartość parametru `mtry` to $\sqrt{p}$ dla regresji i $p/3$ dla
 klasyfikacji.
 
-Oszacowanie błędu testowego dla poprzednio wyznaczonego zbioru walidacyjnego.
+Oszacowanie błędu testowego dla poprzednio wyznaczonego zbioru
+walidacyjnego.
+
 ```{r medvrfvalid}
 set.seed(2)
 medv_rf <- randomForest(medv ~ ., data = Boston, subset = train,
@@ -346,10 +381,11 @@ mean((medv_pred_rf - Boston$medv[test])^2)
 
 **6. Co w tym przypadku można powiedzieć o istotności predyktorów?**
 
-**7. Porównaj na wykresie błędy OOB dla baggingu i domyślnie skonfigurowanego
-lasu losowego.**
+**7. Porównaj na wykresie błędy OOB dla baggingu i domyślnie
+skonfigurowanego lasu losowego.**
 
 Powyższe dla ręcznie ustawionego parametru $m$ (czyli `mtry`).
+
 ```{r medv.rf.valid.mtry}
 set.seed(2)
 medv_rf <- randomForest(medv ~ ., data = Boston, subset = train, mtry = 6,
@@ -358,8 +394,9 @@ medv_pred_rf <- predict(medv_rf, newdata = Boston[test,])
 mean((medv_pred_rf - Boston$medv[test])^2)
 ```
 
-To samo tyczy się lasów losowych w pythonie, gdzie możemy po prostu podmienić
-model pojedynczego drzewa regresji na las drzew.
+To samo tyczy się lasów losowych w pythonie, gdzie możemy po prostu
+podmienić model pojedynczego drzewa regresji na las drzew.
+
 ```{python regressionForest}
 from sklearn.ensemble import RandomForestRegressor
 
