@@ -39,7 +39,7 @@ requirements.txt
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 library(reticulate)
-
+install.packages('xgboost', repos = c('https://dmlc.r-universe.dev', 'https://cloud.r-project.org'))
 library(ISLR)
 library(MASS)
 library(tree)
@@ -100,8 +100,10 @@ parametr lambda redgularyzacji L2, która jest od razu zaimplementowana w
 XGBoost, w przeciwieństwie do pozostałych biliotek
 
 ```{r xgboost-params}
-y <- ToothGrowth$supp
-x <- ToothGrowth[, c("len", "dose")]
+y <- as.factor(ToothGrowth$supp)
+x <- as.matrix(ToothGrowth[, c("len", "dose")])
+
+
 model_conservative <- xgboost(
     x, y, nthreads = 1,
     nrounds = 5, # Rundy to w tym wypadku ilość modeli składowych
@@ -114,13 +116,81 @@ pred_conservative <- predict(
     x
 )
 pred_conservative[1:6]
+y[1:6]
+```
+```{r}
+model_conservative <- xgboost(
+    x, y, nthreads = 1,
+    nrounds = 5, # Rundy to w tym wypadku ilość modeli składowych
+    max_depth = 3, # Maksymalna głębokość pojedynczego modelu
+    reg_lambda = 0.7, # Regularyzacja L2 wag w liściach
+    learning_rate = 0.1 # W jaki sposób zmniejsza się wartość kroku w algorytmie GB
+)
+pred_conservative <- predict(
+    model_conservative,
+    x
+)
+pred_conservative[1:6]
+y[1:6]
 ```
 
+
+```{r}
+model_conservative <- xgboost(
+    x, y, nthreads = 1,
+    nrounds = 5, # Rundy to w tym wypadku ilość modeli składowych
+    max_depth = 3, # Maksymalna głębokość pojedynczego modelu
+    reg_lambda = 0.7, # Regularyzacja L2 wag w liściach
+    learning_rate = 0.1, # W jaki sposób zmniejsza się wartość kroku w algorytmie GB
+    min_child_weight = 3
+)
+pred_conservative <- predict(
+    model_conservative,
+    x
+)
+pred_conservative[1:6]
+y[1:6]
+```
+```{r}
+model_conservative <- xgboost(
+    x, y, nthreads = 1,
+    nrounds = 5, # Rundy to w tym wypadku ilość modeli składowych
+    max_depth = 2, # Maksymalna głębokość pojedynczego modelu
+    reg_lambda = 0.5, # Regularyzacja L2 wag w liściach
+    learning_rate = 0.15, # W jaki sposób zmniejsza się wartość kroku w algorytmie GB
+    min_child_weight = 3
+)
+pred_conservative <- predict(
+    model_conservative,
+    x
+)
+pred_conservative[1:6]
+y[1:6]
+```
+```{r}
+model_conservative <- xgboost(
+    x, y, nthreads = 1,
+    nrounds = 5, # Rundy to w tym wypadku ilość modeli składowych
+    max_depth = 2, # Maksymalna głębokość pojedynczego modelu
+    learning_rate = 0.15, # W jaki sposób zmniejsza się wartość kroku w algorytmie GB
+    min_child_weight = 3
+)
+pred_conservative <- predict(
+    model_conservative,
+    x
+)
+pred_conservative[1:6]
+y[1:6]
+```
 Pełna lista parametrów:
 <https://xgboost.readthedocs.io/en/release_3.0.0/parameter.html>
 
 **1. Przetestuj kilka zestawów parametrów w oparciu o dokumentację. Kod
 i wnioski zawrzyj poniżej.**
+
+Drzewa możemy ograniczać na różny sposób, jednak to co rzuca mi się w oczy to ograniczenia na parametry drzewa - można oraniczać jaki rozmiar może przybrać oraz jakie dziecko musi zawierać minimalną ilość elementów aby doszło do podziału.
+
+W ten sposób można unikać przeuczenia modelu, wydaje się że równie skutecznie co regularyzacja sama w sobie.
 
 Możemy analizować jakość modelu w trakcie treningu
 
@@ -147,6 +217,7 @@ xgb.model.dt.tree(model) # Dokładny opis kolejnych drzew
 ```
 
 **2. Który z predyktorów okazał się istotniejszy? Co o tym świadczy?**
+Ostotniejszym okazała się długość niż dawka, zdecydowanie. Występowała częściej oraz wnosiła więcej informacji
 
 Dla prezentacji CatBoost pobierzemy zbiór danych zarobkowych z UCI. Jest
 domyślnie podzielony na treningowy i testowy, wiec dla własnych
@@ -222,7 +293,7 @@ plt.title("CatBoost Feature Importance")
 plt.tight_layout()
 plt.show()
 ```
-
+## Wartość 
 ```{python catboost conf matrix}
 from catboost.utils import get_confusion_matrix
 
@@ -234,6 +305,104 @@ get_confusion_matrix(model, test_pool)
 podstawie zbioru UCI winequality
 <https://archive.ics.uci.edu/dataset/186/wine+quality>. Wybierz i
 porównaj dwa rodzaje modeli (regersji, klasyfikacji, CatBoostRanker)**
+
+```{r}
+winequality_white <- read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv", sep = ";")
+winequality_red <- read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv", sep = ";")
+head(winequality_white)
+
+winequality_white$type <- c('white')
+winequality_red$type <- c('red')
+
+winequality <- rbind(winequality_white, winequality_red)
+winequality
+```
+
+
+```{python}
+wine_df = pd.DataFrame(r.winequality)
+import numpy as np
+
+X = wine_df.drop('quality', axis=1)
+y = wine_df['quality']
+
+train_indecies, test_indecies = train_test_split(np.arange(X.shape[0]), test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = X.iloc[train_indecies], X.iloc[test_indecies], y.iloc[train_indecies], y.iloc[test_indecies]
+wine_features = np.where(X_train.dtypes == 'object')[0]
+```
+
+```{r}
+summary(winequality)
+
+
+```
+
+```{r}
+X_train <- winequality[py$train_indecies, -c(12, 13)]
+X_test <- winequality[py$test_indecies, -c(12, 13)]
+y_train <- winequality[py$train_indecies, c(12)]
+y_test <- winequality[py$test_indecies, c(12)]
+
+model_wine <- xgboost(
+    X_train, y_train, nthreads = 1,
+    nrounds = 5, #
+    max_depth = 4, 
+    reg_lambda = 0.3, 
+    learning_rate = 0.15, 
+    min_child_weight = 3
+)
+y_pred <- predict(
+    model_wine,
+    X_test
+)
+
+
+# użyłem rmse, z racji iż drzewo nie przewiduje kategoriami, tylko liczbę rzeczywistą
+library(Metrics)
+rmse(y_pred, y_test)
+```
+```{r}
+attributes(model_wine) 
+xgb.importance(model_wine) 
+xgb.model.dt.tree(model_wine) 
+```
+
+
+
+```{python catboost pool}
+train_pool_wine = Pool(X_train, y_train, cat_features=wine_features)
+test_pool_wine = Pool(X_test, y_test, cat_features=wine_features)
+```
+
+```{python catboost model}
+model_wine = CatBoostClassifier(
+    iterations=100,
+    depth=4,
+    learning_rate=0.1,
+    loss_function='MultiClass',
+    verbose=10
+)
+
+model_wine.fit(train_pool_wine)
+
+preds_class = model_wine.predict(test_pool_wine)
+preds_proba = model_wine.predict_proba(test_pool_wine)
+
+print("Sample predictions:", preds_class[:10])
+print("Sample probabilities:", preds_proba[:10])
+```
+```{python catboost features}
+feature_importance = model_wine.get_feature_importance()
+feature_names = X_train.columns
+
+plt.clf()
+plt.barh(feature_names, feature_importance)
+plt.title("CatBoost Feature Importance")
+plt.tight_layout()
+plt.show()
+model_wine.get_feature_importance()
+```
+
 
 ## Tabela porównawcza
 
