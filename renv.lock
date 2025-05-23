@@ -9,6 +9,25 @@
     ]
   },
   "Packages": {
+    "Formula": {
+      "Package": "Formula",
+      "Version": "1.2-5",
+      "Source": "Repository",
+      "Date": "2023-02-23",
+      "Title": "Extended Model Formulas",
+      "Description": "Infrastructure for extended formulas with multiple parts on the right-hand side and/or multiple responses on the left-hand side (see <doi:10.18637/jss.v034.i01>).",
+      "Authors@R": "c(person(given = \"Achim\", family = \"Zeileis\", role = c(\"aut\", \"cre\"), email = \"Achim.Zeileis@R-project.org\", comment = c(ORCID = \"0000-0003-0918-3766\")), person(given = \"Yves\", family = \"Croissant\", role = \"aut\", email = \"Yves.Croissant@univ-reunion.fr\"))",
+      "Depends": [
+        "R (>= 2.0.0)",
+        "stats"
+      ],
+      "License": "GPL-2 | GPL-3",
+      "NeedsCompilation": "no",
+      "Author": "Achim Zeileis [aut, cre] (<https://orcid.org/0000-0003-0918-3766>), Yves Croissant [aut]",
+      "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
+      "Repository": "CRAN",
+      "Encoding": "UTF-8"
+    },
     "ISLR": {
       "Package": "ISLR",
       "Version": "1.4",
@@ -645,6 +664,34 @@
       "Author": "Dirk Eddelbuettel [aut, cre] (<https://orcid.org/0000-0001-6419-907X>), Antoine Lucas [ctb], Jarek Tuszynski [ctb], Henrik Bengtsson [ctb] (<https://orcid.org/0000-0002-7579-5165>), Simon Urbanek [ctb] (<https://orcid.org/0000-0003-2297-1732>), Mario Frasca [ctb], Bryan Lewis [ctb], Murray Stokely [ctb], Hannes Muehleisen [ctb], Duncan Murdoch [ctb], Jim Hester [ctb], Wush Wu [ctb] (<https://orcid.org/0000-0001-5180-0567>), Qiang Kou [ctb] (<https://orcid.org/0000-0001-6786-5453>), Thierry Onkelinx [ctb] (<https://orcid.org/0000-0001-8804-4216>), Michel Lang [ctb] (<https://orcid.org/0000-0001-9754-0393>), Viliam Simko [ctb], Kurt Hornik [ctb] (<https://orcid.org/0000-0003-4198-9911>), Radford Neal [ctb] (<https://orcid.org/0000-0002-2473-3407>), Kendon Bell [ctb] (<https://orcid.org/0000-0002-9093-8312>), Matthew de Queljoe [ctb], Dmitry Selivanov [ctb], Ion Suruceanu [ctb], Bill Denney [ctb], Dirk Schumacher [ctb], András Svraka [ctb], Sergey Fedorov [ctb], Will Landau [ctb] (<https://orcid.org/0000-0003-1878-3253>), Floris Vanderhaeghe [ctb] (<https://orcid.org/0000-0002-6378-6229>), Kevin Tappe [ctb], Harris McGehee [ctb], Tim Mastny [ctb], Aaron Peikert [ctb] (<https://orcid.org/0000-0001-7813-818X>), Mark van der Loo [ctb] (<https://orcid.org/0000-0002-9807-4686>), Chris Muir [ctb] (<https://orcid.org/0000-0003-2555-3878>), Moritz Beller [ctb] (<https://orcid.org/0000-0003-4852-0526>), Sebastian Campbell [ctb], Winston Chang [ctb] (<https://orcid.org/0000-0002-1576-2126>), Dean Attali [ctb] (<https://orcid.org/0000-0002-5645-3493>), Michael Chirico [ctb] (<https://orcid.org/0000-0003-0787-087X>), Kevin Ushey [ctb]",
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
       "Repository": "CRAN"
+    },
+    "earth": {
+      "Package": "earth",
+      "Version": "5.3.4",
+      "Source": "Repository",
+      "Title": "Multivariate Adaptive Regression Splines",
+      "Authors@R": "c(person(given = \"Stephen\", family = \"Milborrow\", role = c(\"aut\", \"cre\"), email = \"milbo@sonic.net\"), person(given = \"Trevor\",  family = \"Hastie\",     role = \"aut\"), person(given = \"Rob\",     family = \"Tibshirani\", role = \"aut\"), person(given = \"Alan\",    family = \"Miller\",     role = \"ctb\"), person(given = \"Thomas\",  family = \"Lumley\",     role = \"ctb\"))",
+      "Depends": [
+        "R (>= 3.4.0)",
+        "Formula (>= 1.2-3)",
+        "plotmo (>= 3.6.0)"
+      ],
+      "Suggests": [
+        "gam (>= 1.20)",
+        "mgcv (>= 1.8-26)",
+        "mda (>= 0.5-2)",
+        "MASS (>= 7.3-51)"
+      ],
+      "Description": "Build regression models using the techniques in Friedman's papers \"Fast MARS\" and \"Multivariate Adaptive Regression Splines\" <doi:10.1214/aos/1176347963>. (The term \"MARS\" is trademarked and thus not used in the name of the package.)",
+      "License": "GPL-3",
+      "LazyData": "yes",
+      "URL": "http://www.milbo.users.sonic.net/earth/",
+      "Repository": "CRAN",
+      "RoxygenNote": "5.1.2",
+      "NeedsCompilation": "yes",
+      "Author": "Stephen Milborrow [aut, cre], Trevor Hastie [aut], Rob Tibshirani [aut], Alan Miller [ctb], Thomas Lumley [ctb]",
+      "Maintainer": "Stephen Milborrow <milbo@sonic.net>",
+      "Encoding": "UTF-8"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -1867,6 +1914,65 @@
       "Encoding": "UTF-8",
       "NeedsCompilation": "no",
       "Repository": "CRAN"
+    },
+    "plotmo": {
+      "Package": "plotmo",
+      "Version": "3.6.4",
+      "Source": "Repository",
+      "Title": "Plot a Model's Residuals, Response, and Partial Dependence Plots",
+      "Authors@R": "person(given = \"Stephen\", family = \"Milborrow\", role = c(\"aut\", \"cre\"), email = \"milbo@sonic.net\")",
+      "Maintainer": "Stephen Milborrow <milbo@sonic.net>",
+      "Depends": [
+        "R (>= 3.4.0)",
+        "Formula (>= 1.2-3)",
+        "plotrix"
+      ],
+      "Description": "Plot model surfaces for a wide variety of models using partial dependence plots and other techniques. Also plot model residuals and other information on the model.",
+      "Suggests": [
+        "C50 (>= 0.1.0-24)",
+        "earth (>= 5.1.2)",
+        "gbm (>= 2.1.1)",
+        "glmnet (>= 2.0.5)",
+        "glmnetUtils (>= 1.0.3)",
+        "MASS (>= 7.3-51)",
+        "mlr (>= 2.12.1)",
+        "neuralnet (>= 1.33)",
+        "partykit (>= 1.2-2)",
+        "pre (>= 0.5.0)",
+        "rpart (>= 4.1-15)",
+        "rpart.plot (>= 3.0.8)"
+      ],
+      "License": "GPL-3",
+      "URL": "http://www.milbo.users.sonic.net",
+      "NeedsCompilation": "no",
+      "Author": "Stephen Milborrow [aut, cre]",
+      "Repository": "CRAN",
+      "Encoding": "UTF-8"
+    },
+    "plotrix": {
+      "Package": "plotrix",
+      "Version": "3.8-4",
+      "Source": "Repository",
+      "Date": "2023-11-09",
+      "Title": "Various Plotting Functions",
+      "Author": "Jim Lemon, Ben Bolker, Sander Oom, Eduardo Klein, Barry Rowlingson, Hadley Wickham, Anupam Tyagi, Olivier Eterradossi, Gabor Grothendieck, Michael Toews, John Kane, Rolf Turner, Carl Witthoft, Julian Stander, Thomas Petzoldt, Remko Duursma, Elisa Biancotto, Ofir Levy, Christophe Dutang, Peter Solymos, Robby Engelmann,  Michael Hecker, Felix Steinbeck, Hans Borchers, Henrik Singmann, Ted Toal, Derek Ogle, Darshan Baral, Ulrike Groemping, Bill Venables, The CRAN Team, Duncan Murdoch",
+      "Maintainer": "Duncan Murdoch <murdoch.duncan@gmail.com>",
+      "Imports": [
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Description": "Lots of plots, various labeling, axis and color scaling functions. The author/maintainer died in September 2023.",
+      "License": "GPL (>= 2)",
+      "NeedsCompilation": "no",
+      "Depends": [
+        "R (>= 3.5.0)"
+      ],
+      "Repository": "CRAN",
+      "URL": "https://github.com/dmurdoch/plotrix",
+      "BugReports": "https://github.com/dmurdoch/plotrix/issues",
+      "Encoding": "UTF-8"
     },
     "png": {
       "Package": "png",
