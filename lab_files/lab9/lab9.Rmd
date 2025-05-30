@@ -47,13 +47,14 @@ Dopasujmy podstawowy model MARS. Jak widać poniżej, wykorzystuje taki
 sam interfejs formuły, co regresja liniowa.
 
 ```{r basic_mars}
-mars_model <- earth(medv ~ ., degree = 1, data = Boston)
+mars_model <- earth(medv ~ ., degree = 3, data = Boston)
 
 # Oraz standardowo - summary
 summary(mars_model)
 ```
 
 **1. Zwiększ wartość parametru degree. Co się zmieniło i dlaczego? **
+Po zwiększeniu 'degree' zwiększona została ilość zmiennych w jednym punkcie przełamania - co oznacza, że teraz Spline są do 3 wymiarów na raz, a nie tylko po jednej zmiennej
 
 Model możemy wypisać i zwizualizować
 
@@ -90,6 +91,39 @@ cat("Tuned model R-squared:", mars_tuned$rsq, "\n")
 podstawie dokumentacji. Które są Twoim zdaniem najistotniejsze? Za co
 odpowiadają?**
 
+Wydaje się że najważniejszymi parametrami będą:
+- nk oraz thresh ze względu na limit drzewa
+- degree - bo limituje ile można naraz zmiennych brać pod uwagę w węźle
+
+Wbrew moim przewidywaniom `penalty` szczególnie przy większej wymiarowości traciła na znaczeniu
+
+```{r tuning}
+mars_tuned <- earth(medv ~ ., data = Boston,
+                   nk = 25,        # Maksymalna liczba funkcji bazowych w modelu przed pruningiem
+                   degree = 5,     # Maksymalny stopień interakcji między zmiennymi
+                   thresh = 0.001, # Próg przycinania funkcji bazowych
+                   nprune = 12)    # Ile funkcji bazowych wyciąć w pruningu
+
+# Porównajmy modele (GCV to Generalized Cross Validation - w praktyce zastępuje adjusted R-squared dla MARS)
+cat("Basic model GCV:", mars_model$grsq, "\n")
+cat("Basic model R-squared:", mars_model$rsq, "\n")
+cat("Tuned model GCV:", mars_tuned$grsq, "\n")
+cat("Tuned model R-squared:", mars_tuned$rsq, "\n")
+```
+```{r tuning}
+mars_tuned <- earth(medv ~ ., data = Boston,
+                   nk = 25,        # Maksymalna liczba funkcji bazowych w modelu przed pruningiem
+                   degree = 5,     # Maksymalny stopień interakcji między zmiennymi
+                   penalty = -1,
+                   thresh = 0.001, # Próg przycinania funkcji bazowych
+                   nprune = 12)    # Ile funkcji bazowych wyciąć w pruningu
+
+# Porównajmy modele (GCV to Generalized Cross Validation - w praktyce zastępuje adjusted R-squared dla MARS)
+cat("Basic model GCV:", mars_model$grsq, "\n")
+cat("Basic model R-squared:", mars_model$rsq, "\n")
+cat("Tuned model GCV:", mars_tuned$grsq, "\n")
+cat("Tuned model R-squared:", mars_tuned$rsq, "\n")
+```
 Pełny trening modelu z wykorzystaniem walidacji krzyżowej:
 
 ```{r cross_validation}
@@ -270,3 +304,38 @@ plt.show()
 
 **3. Pobierz dane z konkursu i wyślij swoje pierwsze wyniki w oparciu o
 AutoML**
+```{python load data}
+receptor_train = pd.read_csv('train.csv')
+receptor_test = pd.read_csv('test.csv') 
+
+X_receptors = receptor_train.drop(columns=['activity'])
+y_receptors = receptor_train['activity']
+run_iter = 0
+```
+
+```{python train model}
+settings = {
+    "time_budget": 120,  # jak długo ma się uczyć w sekundach
+    "task": "binary",  # typ zadania
+    'metric': 'f1',
+#    'average' : 'weighted',
+    "log_file_name": f"receptors_train_{run_iter}.log",  # plik z logami
+    "seed": 123456,  # ziarno losowe
+}
+
+automl = AutoML()
+automl.fit(X_receptors, y_receptors, **settings)
+run_iter += 1
+```
+
+```{python evaluation}
+y_pred = automl.predict(receptor_test)
+
+result = pd.DataFrame({'ID' : receptor_test['ID'], 'activity' : y_pred})
+
+result.to_csv('result0.csv', index=False)
+```
+
+```{python}
+len(receptor_test)
+```
