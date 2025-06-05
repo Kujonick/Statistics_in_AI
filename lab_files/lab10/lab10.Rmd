@@ -34,7 +34,7 @@ Dokumentacja:
 -   <https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html>
 
 ```{r packages}
-library(bnlearn)  # Biblioteka z sieciami baesowskimi
+#library(bnlearn)  # Biblioteka z sieciami baesowskimi
 library(igraph)   # Wizualizacja grafów
 library(corrplot) # wizualizacja korelacji
 ```
@@ -128,6 +128,13 @@ corrplot(cor_matrix, method = "color",
 **2. Które pary zmiennych wykazują najsilniejsze korelacje? Jak można to
 zinterpretować w kontekście katastrofy Titanica?**
 
+Najwyższe korelacje wdaje się mieć 
+- Płeć z klasą, co w tamtych czasach ma dużo sensu, mężczyźni byli głównie zamożni więc wykupowali lepszą klasę
+- Przeżywalność z płcią, co może wskazywać na jedną z kilku rzeczy:
+  - mężczyźni pracujący na statku zaniżali statystykę (byli uwięzieni w dolnym pokładzie statku)
+  - kobiety były traktowane z troską i one były ratowane pierwsze (jak nakazuje zasada "kobiety i dzieci na szalupę")
+  - przebywały w innych salach?
+
 ## Graf nieskierowany oparty na korelacjach
 
 ```{r undirected_graph}
@@ -169,6 +176,17 @@ for(i in 1:length(max_cliques)) {
 
 **3. Zinterpretuj znalezione kliki. Co oznacza, że zmienne tworzą klikę
 w grafie nieskierowanym?**
+
+Posiadamy dwie kliki, 
+
+jedna to Wiek - Płeć
+Ma to sens z dwóch przyczyn - płynący tytanikiem byli zamożni ludzie oraz oczywiście załoga. Załoga na pewno zamożna nie była, bo by spędzała czas pijąc whiskey a nie pucując pokład. Byli to zapewne młodsi mężczyzni, jedynie oficerowie i kapitam byli raczej doświadczeni i starsi.
+Natomiast klasa wyższa oznacza iż byli oni już raczej ustatkowanymi, starszymi 
+
+Druga Klasa - Płeć - Czy przeżył
+Tutaj widzimy już więcej informacji niż z macierzy. Teraz mamy pełny wgląd i wiemy, że te 3 zmienne nie tyle były ze sobą powiązane 1:1, ale mogły tworzyć bardziej złożony układ - np. Kobiety były w większości w określonym wieku i przebywały tylko w klasie wyższej, gdzie mężczyżźni dzielili się na bogatych i na załogę, które miały inne szanse przeżycia
+
+Jeżeli zmienne tworzą klikę, oznacza że posiadają one wspólne zależności. W praktyce oznacza to, że nie koniecznie muszą być to zależności 1:1, ale może to być bardziej złożona funkcja, która niczym w naczyniach połączonych zmiana jednego powoduje zmianę we wszystkich pozostałych oraz ich względem siebie
 
 # Porównanie Modeli
 
