@@ -53,7 +53,7 @@ mars_model <- earth(medv ~ ., degree = 1, data = Boston)
 summary(mars_model)
 ```
 
-**1. Zwiększ wartość parametru degree. Co się zmieniło i dlaczego? **
+**1. Zwiększ wartość parametru degree. Co się zmieniło i dlaczego?**
 
 Model możemy wypisać i zwizualizować
 
@@ -161,18 +161,28 @@ relatywnie niskim kosztem pozyskać często bardzo dobry model bazowy.
 Dostarczają też wiele informacji odnośnie dopasowanych modeli, które
 można wykorzystać w kolejnych etapach uczenia.
 
-Narzędzia AutoML wykonają następujące czynności: - podstawowa obróbka
-danych (wartości brakujące, zmienne kategoryczne, skalowanie) -
-wytrenują wiele modeli z różnymi parametrami w poszukiwaniu
-najlepszego - dostarczą podstawowej interpretacji modeli
+Narzędzia AutoML wykonają następujące czynności:
 
-Czego AutoML nie zrobią? - nie zdefiniuje konkretnego problemu na
-podstawie wymagań klienta - nie zaprojektuje nowych zmiennych - nie
-przetworzy niestandardowych danych - nie wykona wszystkich zadań
-towarzyszących uczeniu maszynowemu (infrastruktura, debugging, etc)
+-   podstawowa obróbka danych (wartości brakujące, zmienne kategoryczne,
+    skalowanie)
+-   wytrenują wiele modeli z różnymi parametrami w poszukiwaniu
+    najlepszego
+-   dostarczą podstawowej interpretacji modeli
 
-Przykłady narzedzi AutoMl: - H2O.ai - PyCaret - FLAML (Microsoft) -
-AutoGluon (Amazon)
+Czego AutoML nie zrobią?
+
+-   nie zdefiniuje konkretnego problemu na podstawie wymagań klienta
+-   nie zaprojektuje nowych zmiennych
+-   nie przetworzy niestandardowych danych
+-   nie wykona wszystkich zadań towarzyszących uczeniu maszynowemu
+    (infrastruktura, debugging, etc)
+
+Przykłady narzedzi AutoMl:
+
+-   H2O.ai
+-   PyCaret
+-   FLAML (Microsoft)
+-   AutoGluon (Amazon)
 
 Przykład AutoMl w oparciu o wine quality dataset:
 
